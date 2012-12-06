@@ -3,6 +3,31 @@ package adjpair
 import "testing"
 import "math"
 import "regexp"
+import "fmt"
+
+var examplesSplitFilepath = []struct {
+  path string
+  result []string
+}{
+  {"", []string{}},
+  {"test", []string{"test"}},
+  {"test/foo", []string{"test", "foo"}},
+  {"/test/foo", []string{"", "test", "foo"}},
+  {"/test/foo/", []string{"", "test", "foo", ""}},
+  {"/test foo/", []string{"", "test", "foo", ""}},
+  {"/test  foo/", []string{"", "test", "", "foo", ""}},
+}
+
+func TestSplitFilepath(t *testing.T) {
+  for i, tt := range examplesSplitFilepath {
+    result := splitFilepath(tt.path)
+    str_result := fmt.Sprintf("%v", result)
+    str_expected := fmt.Sprintf("%v", tt.result)
+    if str_result != str_expected {
+      t.Errorf("%d. path '%s' returned %s, but expected %s", i, tt.path, str_result, str_expected)
+    }
+  }
+}
 
 func TestDetectLength(t *testing.T) {
   e := detectLength([]string{"abc", "def", "ghi"})

@@ -3,9 +3,13 @@ package adjpair
 import "bytes"
 import "fmt"
 import "regexp"
+import "strings"
 
 const PAIR_ACTIVE = 1
 const PAIR_INACTIVE = 2
+
+// maximum elements in a filepath
+const FILEPATH_MAX = 64
 
 type Pair struct {
   fst byte
@@ -31,7 +35,7 @@ func detectLength(tokens []string) int {
   return result
 }
 
-// This func is missing in Go 1.0
+// This helper func is missing in Go 1.0 (String type)
 func splitWithRegexp(s string, re *regexp.Regexp) []string {
   if len(re.String()) > 0 && len(s) == 0 {
     return []string{""}
@@ -53,9 +57,28 @@ func splitWithRegexp(s string, re *regexp.Regexp) []string {
   return strings
 }
 
+func splitFilepath(s string) []string {
+  if len(s) == 0 {
+    return []string{}
+  }
+  strs := make([]string, 0, FILEPATH_MAX)
+  slc := s
+  ix := 0
+  for {
+    ix = strings.IndexRune(slc, '/')
+    if ix == -1 {
+      break
+    }
+    strs = append(strs, slc[0:ix])
+    slc = slc[ix + 1:]
+  }
+  strs = append(strs, slc[ix + 1:])
+  return strs
+}
+
 func NewPairsFromArray(tokens []string) Pairs {
   dl := detectLength(tokens)
-  pairs := make([]Pair, dl)
+  pairs := make(Pairs, dl)
 
   k := 0
   for i := 0; i < len(tokens); i++ {
@@ -76,6 +99,11 @@ func NewPairsFromString(str string) Pairs {
 
 func NewPairsFromStringTokens(str string, re regexp.Regexp) Pairs {
   ss := splitWithRegexp(str, &re)
+  return NewPairsFromArray(ss)
+}
+
+func NewPairsFromFilepath(str string) Pairs {
+  ss := splitFilepath(str)
   return NewPairsFromArray(ss)
 }
 
